@@ -110,4 +110,23 @@ public class TestLoadDSLDocuments extends AbstractDSLTest {
 		assertEquals("link3", system.getLinks().get(2).getName());
 		assertEquals("link4", system.getLinks().get(3).getName());
 	}
+
+	@Test
+	@TestOrder(5)
+	public void testAlloyDSLContents() {
+
+		String documentName = "birthday.als";
+		DSLSystem system = getDSLSystem(documentName);
+		System.out.println(documentName + ":\n" + system);
+
+		assertEquals(3, system.getComponents().size());
+		assertEquals("ComponentA", system.getComponents().get(0).getName());
+		assertEquals("ComponentB", system.getComponents().get(1).getName());
+		assertEquals("ComponentC", system.getComponents().get(2).getName());
+		assertEquals(4, system.getLinks().size());
+		assertEquals("link1", system.getLinks().get(0).getName());
+		assertEquals("link2", system.getLinks().get(1).getName());
+		assertEquals("link3", system.getLinks().get(2).getName());
+		assertEquals("link4", system.getLinks().get(3).getName());
+	}
 }
