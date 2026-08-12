@@ -1,0 +1,169 @@
+Package org.openflexo.ta.dsl.parser;
+
+Helpers
+
+ ht = 0x0009;
+ lf = 0x000a;
+ ff = 0x000c;
+ cr = 0x000d;
+ sp = ' ';
+
+ line_terminator = lf | cr | cr lf;
+
+ upper_case = ['A' .. 'Z'] | [0x00c0 .. 0x00dd] | 0x20ac;
+ lower_case = ['a' .. 'z'] | [0x00e0 .. 0x00fd] | 0x20ac;
+ digit = ['0'..'9'];
+ letter = upper_case | lower_case | '_' ;
+ any = [0 .. 0xffff];
+ not_hyphen = [any - '"' ];
+ not_hyphen2 = [any - ''' ];
+
+Tokens
+ l_bkt = '[';
+ r_bkt = ']';
+ l_par = '(';
+ r_par = ')';
+ l_brace = '{';
+ r_brace = '}';
+ dot = '.';
+ comma = ',';
+ semi = ';';
+ colon = ':';
+ arrow = '->';
+ rangeRestriction = ':>';
+ domainRestriction = '<:';
+ implies = '=>';
+ intersection = '&';
+ and = '&&';
+ or = '||';
+ verticalBar = '|';
+ number = digit+;
+ equal = '=';
+ dollarSign = '$';
+ percentSign = '%';
+ questionMark = '?';
+ exclamationPoint = '!';
+ underscore = '_';
+ doubleQuoteMarks = '"';
+ at = '@';
+ prime = "'";
+ minus = '-';
+ dotJoin = '.';
+ relationalOverride = '++';
+ plus = '+';
+ cardinality = "#";
+ transpose = "~";
+ reflexiveTransitiveClosure = '*';
+ transitiveClosure = '^';
+ biImplication = '<=>';
+ lt = '<' ;
+ lte = '=<';
+ gt = '>';
+ gte = '>=';
+ slash = '/';
+
+
+// keywords
+
+kw_abstract = 'abstract';
+kw_after = 'after';
+kw_all = 'all';
+kw_always = 'always';
+kw_and = 'and';
+kw_as = 'as';
+kw_assert = 'assert';
+kw_before = 'before';
+kw_but = 'but';
+kw_check = 'check';
+kw_disj = 'disj';
+kw_else = 'else';
+kw_enabled = 'enabled';
+kw_event = 'event';
+kw_eventually = 'eventually';
+kw_exactly = 'exactly';
+kw_extends = 'extends';
+kw_fact = 'fact';
+kw_for = 'for';
+kw_fun = 'fun';
+kw_historically = 'historically';
+kw_iden = 'iden';
+kw_iff = 'iff';
+kw_implies = 'implies';
+kw_in = 'in';
+kw_int = 'Int';
+kw_invariant = 'invariant';
+kw_let = 'let';
+kw_lone = 'lone';
+kw_modifies = 'modifies';
+kw_module = 'module';
+kw_no = 'no';
+kw_none = 'none';
+kw_not = 'not';
+kw_once = 'once';
+kw_one = 'one';
+kw_open = 'open';
+kw_or = 'or';
+kw_pred = 'pred';
+kw_releases = 'releases';
+kw_run = 'run';
+kw_set = 'set';
+kw_sig = 'sig';
+kw_since = 'since';
+kw_some = 'some';
+kw_steps = 'steps';
+kw_sum = 'sum';
+kw_triggered = 'triggered';
+kw_univ = 'univ';
+kw_until = 'until';
+kw_var = 'var';
+kw_this = 'this';
+
+// literals
+
+ decimal_number = ['0' .. '9']+;
+ precise_number = ['0' .. '9']+ '.' ['0' .. '9']+;
+ scientific_notation_number =
+ ['0' .. '9']+ '.' ['0' .. '9']+ 'e' ['0' .. '9']+
+ | ['0' .. '9']+ '.' ['0' .. '9']+ 'e' '-' ['0' .. '9']+
+ | ['0' .. '9']+ '.' ['0' .. '9']+ 'E' ['0' .. '9']+
+ | ['0' .. '9']+ '.' ['0' .. '9']+ 'E' '-' ['0' .. '9']+;
+ string_value = '"' (not_hyphen)* '"';
+ chars_value = ''' (not_hyphen2)* ''';
+ identifier = letter (letter | digit)*;
+// blank = (' ' | 13 | 10)+;
+
+ white_space = (sp | ht | ff | line_terminator)*;
+
+Ignored Tokens
+ white_space;
+
+Productions
+ alloyModule = moduleDecl? import* paragraph*
+ moduleDecl = kw_module qualName (((identifier comma)+)?)?
+ import = kw_open qualName (((qualName comma)+)?)? (kw_as identifier)?
+ paragraph = sigDecl | factDecl | predDecl | funDecl | assertDecl | cmdDecl
+ sigDecl = kw_var? kw_abstract? mult? kw_sig (identifier comma)+ sigExt? l_brace (fieldDecl comma)* r_brace block?
+ sigExt = kw_extends qualName | kw_in qualName (+ qualName)?*
+ mult = kw_lone | kw_some | kw_one
+ fieldDecl = kw_var? decl
+ decl = kw_disj? (identifier comma)+ colon kw_disj? expr
+ factDecl = kw_fact identifier? block
+ predDecl = kw_pred (qualName .)? identifier paraDecls? block
+ funDecl = kw_fun (qualName .)? identifier paraDecls? colon expr l_brace expr r_brace
+ paraDecls = ( (decl comma)* ) | ( (decl comma)* )?
+ assertDecl = kw_assert identifier? block
+ cmdDecl = (identifier colon)? ( kw_run | kw_check ) ( qualName | block ) scope?
+ scope = kw_for number (kw_but (typescope comma)+)? | kw_for (typescope comma)+
+ typescope = kw_exactly? number qualName
+ expr = const | qualName | at identifier | kw_this | unOp expr | expr binOp expr | expr arrowOp expr | expr ( (expr comma)* )? | expr (exclamationPoint | kw_not)? compareOp exprR | expr ( implies | kw_implies ) expr else expr | kw_let (letDecl comma)+ blockOrBar | quant (decl comma)+ blockOrBar | l_brace (decl comma)+ blockOrBar r_brace | expr prime | ( expr ) | block
+ const = (minus)? number | kw_none | kw_univ | kw_iden
+ unOp = exclamationPoint | kw_not | kw_no | mult | kw_set | cardinality | transpose | reflexiveTransitiveClosure | transitiveClosure | kw_always | kw_eventually | kw_after | kw_before | kw_historically | kw_once
+ binOp = or | kw_or | and | kw_and | biImplication | kw_iff | implies | kw_implies | intersection | plus | minus | relationalOverride | domainRestriction | rangeRestriction | dotJoin | kw_until | kw_releases | kw_since | kw_triggered | ;
+ arrowOp = (mult | kw_set)? arrow (mult | kw_set)?
+ compareOp = kw_in | equal | lt | gt | lte | gte
+ letDecl = identifier equal expr
+ block = l_brace expr* r_brace
+ blockOrBar = block | bar expr
+ bar = verticalBar;
+ quant = kw_all | kw_no | kw_sum | mult
+ qualName = (kw_this slash)? ( identifier slash )* identifier
