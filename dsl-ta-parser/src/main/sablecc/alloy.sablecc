@@ -139,9 +139,9 @@ Ignored Tokens
 
 //used ChatGPT help to fix mistakes
 Productions
- alloy_module = module_decl? import* paragraphs* ;
- module_decl = kw_module qual_name module_decl_params ;
- module_decl_params = {params} identifier comma module_decl_params | {empty} ;
+ alloy_module = module_decl? import* paragraphs ;
+ module_decl = kw_module qual_name module_decl_params? ;
+ module_decl_params = {one} identifier | {more} identifier comma module_decl_params ;
  import = {import} kw_open qual_name import_names import_alias ;
  import_names = {some} comma qual_name import_names | {empty} ;
  import_alias = {alias} kw_as identifier | {empty} ;
@@ -178,7 +178,7 @@ Productions
  typescopes = {one} typescope typescopes_tail ;
  typescopes_tail = {more} comma typescope typescopes_tail | {empty} ;
  typescope = kw_exactly? number qual_name ;
- expr = {const} const | {qual_name} qual_name | {at} at identifier | {this} kw_this | {un_op} un_op expr | {bin_op} [left]:expr bin_op [right]:expr | {arrow_op} [left]:expr arrow_op [right]:expr | {call} expr call_args_opt | {compare} [left]:expr compare_prefix compare_op [right]:expr | {implies} [condition_expr]:expr implication_op [then_expr]:expr kw_else [else_expr]:expr | {let} kw_let let_decls block_or_bar | {quant} quant decls block_or_bar | {quant_block} l_brace decls block_or_bar r_brace | {prime} expr prime | {parenthesized} l_par expr r_par | {block} block ;
+ expr = {const} const | {qual_name} qual_name | {at} at identifier | {this} kw_this | {un_op} un_op [unary]:expr | {bin_op} [left]:expr bin_op [right]:expr | {arrow_op} [left]:expr arrow_op [right]:expr | {call} [function]:expr call_args_opt | {compare} [left]:expr compare_prefix compare_op [right]:expr | {implies} [condition_expr]:expr implication_op [then_expr]:expr kw_else [else_expr]:expr | {let} kw_let let_decls block_or_bar | {quant} quant decls block_or_bar | {quant_block} l_brace decls block_or_bar r_brace | {prime_expr} [expression]:expr prime | {parenthesized} l_par [parenthesized]:expr r_par | {block} block ;
  decls = {one} decl decls_tail ;
  decls_tail = {more} comma decl decls_tail | {empty} ;
  let_decls = {one} let_decl let_decls_tail ;
