@@ -178,10 +178,11 @@ Productions
  typescopes = {one} typescope typescopes_tail ;
  typescopes_tail = {more} comma typescope typescopes_tail | {empty} ;
  typescope = kw_exactly? number qual_name ;
- expr = {postfix} postfix_expr | {un_op} un_op expr | {binary} binary_expr | {arrow_op} [left]:expr arrow_op [right]:expr | {compare} [left]:expr compare_op [right]:expr | {implication} implication_expr | {let} kw_let let_decls block_or_bar | {quant} quant decls block_or_bar | {quant_block} l_brace decls block_or_bar r_brace ;
- postfix_expr = {primary} primary postfixes ;
+ expr = {expression} implication_expr | {let} kw_let let_decls block_or_bar  | {quant} quant decls block_or_bar | {quant_block} l_brace decls block_or_bar ;
+// expr = {un_op} un_op expr | {binary} binary_expr | {arrow} arrow_expr | {compare} [left]:expr compare_op [right]:expr | {implication} implication_expr | {let} kw_let let_decls block_or_bar | {quant} quant decls block_or_bar | {quant_block} l_brace decls block_or_bar r_brace ;
+ postfix_expr = {primary} primary | {call} [function]:primary l_par call_args r_par | {prime} [expression]:primary prime ;
  primary = {const} const | {qual_name} qual_name | {at} at identifier | {this} kw_this | {parenthesized} l_par expr r_par | {block} block ;
- postfixes = {call} l_par call_args r_par postfixes | {prime} prime postfixes | {empty} ;
+// postfixes = {call} l_par call_args r_par postfixes | {prime} prime postfixes | {empty} ;
  decls = {one} decl decls_tail ;
  decls_tail = {more} comma decl decls_tail | {empty} ;
  let_decls = {one} let_decl let_decls_tail ;
@@ -203,20 +204,24 @@ Productions
  and_operator = {and} and | {kw_and} kw_and ;
  intersection_expr = {op} [left]:intersection_expr intersection_operator [right]:relational_expr | {next} relational_expr ;
  intersection_operator = {intersection} intersection ;
- relational_expr = {op} [left]:relational_expr relational_operator [right]:additive_expr | {next} additive_expr ;
+ relational_expr = {op} [left]:relational_expr relational_operator [right]:additive_expr | {next} arrow_expr ;
  relational_operator = {relational_override} relational_override | {domain_restriction} domain_restriction | {range_restriction} range_restriction | {dot_join} dot_join ;
- additive_expr = {op} [left]:additive_expr add_operator [right]:postfix_expr | {next} postfix_expr ;
+ additive_expr = {op} [left]:additive_expr add_operator [right]:postfix_expr  ;
  add_operator = {plus} plus | {minus} minus ;
  iff_expr = {op} [left]:iff_expr iff_operator [right]:or_expr | {next} or_expr  ;
  iff_operator = {bi_implication} bi_implication | {kw_iff} kw_iff ;
+// TODO review the chain operator
  implication_expr = {implies} [condition_expr]:iff_expr implication_operator [then_expr]:expr kw_else [else_expr]:expr | {next} iff_expr ;
  implication_operator = {implies} implies | {kw_implies} kw_implies ;
  temporal_expr = {op} [left]:temporal_expr temporal_operator [right]:iff_expr | {next} iff_expr ;
  temporal_operator = {until} kw_until | {releases} kw_releases | {since} kw_since | {triggered} kw_triggered ;
 
 // bin_op = {or} or | {kw_or} kw_or | {and} and | {kw_and} kw_and | {bi_implication} bi_implication | {kw_iff} kw_iff | {implies} implies | {kw_implies} kw_implies | {intersection} intersection | {plus} plus | {minus} minus | {relational_override} relational_override | {domain_restriction} domain_restriction | {range_restriction} range_restriction | {dot_join} dot_join | {kw_until} kw_until | {kw_releases} kw_releases | {kw_since} kw_since | {kw_triggered} kw_triggered ;
- arrow_op = [left]:arrow_mult_opt arrow [right]:arrow_mult_opt ;
- arrow_mult_opt = {mult} mult | {set} kw_set | {empty} ;
+// arrow_op = [left]:arrow_mult_opt arrow [right]:arrow_mult_opt ;
+// arrow_mult_opt = {mult} mult | {set} kw_set | {empty} ;
+ arrow_expr = {with_prefix} [left]:additive_expr arrow_prefix arrow arrow_suffix [right]:additive_expr | {without_prefix} [left]:additive_expr arrow arrow_suffix [right]:additive_expr | {next} additive_expr ;
+ arrow_prefix =  {mult} mult | {set} kw_set;
+ arrow_suffix =  {mult} mult | {set} kw_set| {empty};
  compare_op = {in} kw_in | {equal} equal | {lt} lt | {gt} gt | {lte} lte | {gte} gte ;
  let_decl = identifier equal expr ;
  block = l_brace expr* r_brace ;
