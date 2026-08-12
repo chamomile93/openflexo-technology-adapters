@@ -30,37 +30,37 @@ Tokens
  semi = ';';
  colon = ':';
  arrow = '->';
- rangeRestriction = ':>';
- domainRestriction = '<:';
+ range_restriction = ':>';
+ domain_restriction = '<:';
  implies = '=>';
  intersection = '&';
  and = '&&';
  or = '||';
- verticalBar = '|';
+ vertical_bar = '|';
  number = digit+;
  equal = '=';
- dollarSign = '$';
- percentSign = '%';
- questionMark = '?';
- exclamationPoint = '!';
+ dollar_sign = '$';
+ percent_sign = '%';
+ question_mark = '?';
+ exclamation_point = '!';
  underscore = '_';
- doubleQuoteMarks = '"';
+ double_quote_marks = '"';
  at = '@';
- prime = "'";
  minus = '-';
- dotJoin = '.';
- relationalOverride = '++';
+ dot_join = '.';
+ relational_override = '++';
  plus = '+';
- cardinality = "#";
- transpose = "~";
- reflexiveTransitiveClosure = '*';
- transitiveClosure = '^';
- biImplication = '<=>';
+ cardinality = '#';
+ transpose = '~';
+ reflexive_transitive_closure = '*';
+ transitive_closure = '^';
+ bi_implication = '<=>';
  lt = '<' ;
  lte = '=<';
  gt = '>';
  gte = '>=';
  slash = '/';
+ prime = ''';
 
 
 // keywords
@@ -137,33 +137,66 @@ kw_this = 'this';
 Ignored Tokens
  white_space;
 
+//used ChatGPT help to fix mistakes
 Productions
- alloyModule = moduleDecl? import* paragraph*
- moduleDecl = kw_module qualName (((identifier comma)+)?)?
- import = kw_open qualName (((qualName comma)+)?)? (kw_as identifier)?
- paragraph = sigDecl | factDecl | predDecl | funDecl | assertDecl | cmdDecl
- sigDecl = kw_var? kw_abstract? mult? kw_sig (identifier comma)+ sigExt? l_brace (fieldDecl comma)* r_brace block?
- sigExt = kw_extends qualName | kw_in qualName (+ qualName)?*
- mult = kw_lone | kw_some | kw_one
- fieldDecl = kw_var? decl
- decl = kw_disj? (identifier comma)+ colon kw_disj? expr
- factDecl = kw_fact identifier? block
- predDecl = kw_pred (qualName .)? identifier paraDecls? block
- funDecl = kw_fun (qualName .)? identifier paraDecls? colon expr l_brace expr r_brace
- paraDecls = ( (decl comma)* ) | ( (decl comma)* )?
- assertDecl = kw_assert identifier? block
- cmdDecl = (identifier colon)? ( kw_run | kw_check ) ( qualName | block ) scope?
- scope = kw_for number (kw_but (typescope comma)+)? | kw_for (typescope comma)+
- typescope = kw_exactly? number qualName
- expr = const | qualName | at identifier | kw_this | unOp expr | expr binOp expr | expr arrowOp expr | expr ( (expr comma)* )? | expr (exclamationPoint | kw_not)? compareOp exprR | expr ( implies | kw_implies ) expr else expr | kw_let (letDecl comma)+ blockOrBar | quant (decl comma)+ blockOrBar | l_brace (decl comma)+ blockOrBar r_brace | expr prime | ( expr ) | block
- const = (minus)? number | kw_none | kw_univ | kw_iden
- unOp = exclamationPoint | kw_not | kw_no | mult | kw_set | cardinality | transpose | reflexiveTransitiveClosure | transitiveClosure | kw_always | kw_eventually | kw_after | kw_before | kw_historically | kw_once
- binOp = or | kw_or | and | kw_and | biImplication | kw_iff | implies | kw_implies | intersection | plus | minus | relationalOverride | domainRestriction | rangeRestriction | dotJoin | kw_until | kw_releases | kw_since | kw_triggered | ;
- arrowOp = (mult | kw_set)? arrow (mult | kw_set)?
- compareOp = kw_in | equal | lt | gt | lte | gte
- letDecl = identifier equal expr
- block = l_brace expr* r_brace
- blockOrBar = block | bar expr
- bar = verticalBar;
- quant = kw_all | kw_no | kw_sum | mult
- qualName = (kw_this slash)? ( identifier slash )* identifier
+ alloy_module = module_decl? import* paragraph* ;
+ module_decl = kw_module qual_name module_decl_params ;
+ module_decl_params = {params} identifier comma module_decl_params | {empty} ;
+ import = {import} kw_open qual_name import_names import_alias ;
+ import_names = {some} comma qual_name import_names | {empty} ;
+ import_alias = {alias} kw_as identifier | {empty} ;
+ paragraph = sig_decl | fact_decl | pred_decl | fun_decl | assert_decl | cmd_decl ;
+ sig_decl = kw_var? kw_abstract? mult? kw_sig sig_names sig_ext? l_brace field_decls r_brace block? ;
+ sig_names = {one} identifier sig_names_tail   ;
+ sig_names_tail = {more} comma identifier sig_names_tail | {empty} ;
+ field_decls = {fields} field_decl field_decls_tail | {empty} ;
+ field_decls_tail = {more} comma field_decl field_decls_tail | {empty} ;
+ sig_ext = kw_extends qual_name | kw_in qual_name sig_ext_names ;
+ sig_ext_names = {more} plus qual_name sig_ext_names | {empty} ;
+ mult = kw_lone | kw_some | kw_one ;
+ field_decl = kw_var? decl ;
+ decl = kw_disj? identifiers colon kw_disj? expr ;
+ identifiers = identifier identifiers_tail ;
+ identifiers_tail = {more} comma identifier identifiers_tail | {empty} ;
+ decl_expr_disj = {disj} kw_disj | {empty} ;
+ fact_decl = kw_fact identifier? block ;
+ pred_decl = kw_pred pred_qual_name identifier para_decls? block ;
+ pred_qual_name = {qualified} qual_name dot | {empty} ;
+ fun_decl = kw_fun fun_qual_name identifier para_decls? colon expr l_brace expr r_brace ;
+ fun_qual_name = {qualified} qual_name dot | {empty} ;
+ para_decls =  {some} decl para_decls_tail | {empty} ;
+ para_decls_tail = {more} comma decl para_decls_tail | {empty} ;
+ assert_decl = kw_assert identifier? block ;
+ cmd_decl = cmd_name cmd_kind cmd_target scope? ;
+ cmd_name = {named} identifier colon | {empty} ;
+ cmd_kind = {run} kw_run | {check} kw_check ;
+ cmd_target = {qual_name} qual_name | {block} block ;
+ scope = kw_for number scope_but_opt | {types} kw_for typescopes ;
+ scope_but_opt = {but} kw_but typescopes | {empty} ;
+ typescopes = {one} typescope typescopes_tail ;
+ typescopes_tail = {more} comma typescope typescopes_tail | {empty} ;
+ typescope = kw_exactly? number qual_name ;
+ expr = const | qual_name | at identifier | kw_this | un_op expr | expr bin_op expr | expr arrow_op expr | expr call_args_opt | expr compare_prefix compare_op expr | expr implication_op expr kw_else expr | kw_let let_decls block_or_bar | quant decls block_or_bar | l_brace decls block_or_bar r_brace | expr prime | l_par expr r_par | block ;
+ decls = {one} decl decls_tail ;
+ decls_tail = {more} comma decl decls_tail | {empty} ;
+ let_decls = {one} let_decl let_decls_tail ;
+ let_decls_tail = {more} comma let_decl let_decls_tail | {empty} ;
+ implication_op = {implies} implies | {kw_implies} kw_implies ;
+ compare_prefix = {not} exclamation_point | {not_kw} kw_not | {empty} ;
+ call_args_opt = {call} l_par call_args r_par | {empty} ;
+ call_args = {one} expr call_args_tail | {empty} ;
+ call_args_tail = {more} comma expr call_args_tail | {empty} ;
+ const = minus? number | kw_none | kw_univ | kw_iden ;
+ un_op = exclamation_point | kw_not | kw_no | mult | kw_set | cardinality | transpose | reflexive_transitive_closure | transitive_closure | kw_always | kw_eventually | kw_after | kw_before | kw_historically | kw_once ;
+ bin_op = or | kw_or | and | kw_and | bi_implication | kw_iff | implies | kw_implies | intersection | plus | minus | relational_override | domain_restriction | range_restriction | dot_join | kw_until | kw_releases | kw_since | kw_triggered | ;
+ arrow_op = arrow_mult_opt arrow arrow_mult_opt ;
+ arrow_mult_opt = {mult} mult | {set} kw_set | {empty} ;
+ compare_op = kw_in | equal | lt | gt | lte | gte ;
+ let_decl = identifier equal expr ;
+ block = l_brace expr* r_brace ;
+ block_or_bar = block | bar expr ;
+ bar = vertical_bar ;
+ quant = kw_all | kw_no | kw_sum | mult ;
+ qual_name = qual_name_prefixes identifier ;
+ qual_name_prefixes = {this} kw_this slash qual_name_prefixes_tail | {empty} ;
+ qual_name_prefixes_tail = {prefix} identifier slash qual_name_prefixes_tail | {empty} ;
