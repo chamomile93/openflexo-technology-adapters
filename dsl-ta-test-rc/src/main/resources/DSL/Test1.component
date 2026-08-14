@@ -15,4 +15,3 @@ system
 	link link3 from ComponentB.outputB to ComponentC.inputC;
 	link link4 from ComponentC.outputC to ComponentA.inputA;
 end
-	
